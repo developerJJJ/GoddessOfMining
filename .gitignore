@@ -1,0 +1,16 @@
+# Visual Studio files
+*.csproj
+*.sln
+.vscode/
+
+# Unity files
+Library/
+Temp/
+Build/
+Builds/
+
+# Input Actions (consider keeping if needed for collaboration)
+*.inputactions
+
+# OS generated files
+.DS_Store
