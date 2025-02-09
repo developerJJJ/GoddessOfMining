@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 8732521275000150252}
   - component: {fileID: 2169135809247262149}
   - component: {fileID: 1555608781793206079}
+  - component: {fileID: 4836818364477530521}
   m_Layer: 0
   m_Name: prefab_miner
   m_TagString: Untagged
@@ -134,3 +135,25 @@ MonoBehaviour:
   miningTime: 2
   oreQuantity: 0
   hitsToMine: 3
+--- !u!95 &4836818364477530521
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8410367870073786981}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: f560baac1548db740b501e93db928b11, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0

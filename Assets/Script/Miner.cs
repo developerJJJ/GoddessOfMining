@@ -12,6 +12,7 @@ public class Miner : MonoBehaviour
 
     private float miningTimer;
     private bool isMining = false;
+    private bool isWalking = false; // Add this flag
     private Rigidbody2D rb;
     private Animator animator;
 
@@ -28,21 +29,29 @@ public class Miner : MonoBehaviour
 
     void FixedUpdate()
     {
+
         if (oreTarget != null && !isMining)
         {
             Vector2 direction = (oreTarget.position - transform.position).normalized;
             rb.AddForce(direction * moveSpeed, ForceMode2D.Force);
-
-            if (direction != Vector2.zero && animator != null)
+            if (animator != null)
             {
-                animator.Play("WalkingAnimation");
+                if (rb.linearVelocity.magnitude > 0.1f)
+                {
+                    animator.SetBool("isWalking", true);
+                    isWalking = true; // Set the flag
+                }
+                else
+                {
+                    animator.SetBool("isWalking", false);
+                    isWalking = false; // Reset the flag
+                }
             }
         }
 
         if (isMovingToMinecart)
         {
             rb.linearVelocity = minecartDirection * moveSpeed;
-            // Debug.Log("Velocity set in FixedUpdate: " + rb.linearVelocity);
         }
     }
 
@@ -52,7 +61,12 @@ public class Miner : MonoBehaviour
         {
             oreTarget = other.transform;
             rb.linearVelocity = Vector2.zero;
-            StartMining();
+            isMining = true;
+
+            animator.SetBool("isMining", true); // Set isMining to true when mining starts
+            StartCoroutine(MiningAnimationCoroutine());
+
+
             Debug.Log("Miner entered trigger of ore: " + other.gameObject.name);
         }
         else if (other.gameObject.CompareTag("Minecart") && oreQuantity > 0)
@@ -73,22 +87,40 @@ public class Miner : MonoBehaviour
         isMining = true;
         StartCoroutine(MiningAnimationCoroutine());
     }
-
     IEnumerator MiningAnimationCoroutine()
     {
         Debug.Log("Coroutine started");
 
-        for (int i = 0; i < hitsToMine; i++)
-        {
-            // if (animator != null)
-            // {
-            //     animator.Play("MiningAnimation");
-            // }
+        float totalAnimationTime = 2f; // The total mining duration (2 seconds)
+        int totalHits = 3; // The total number of hits
+        float timePerHit = totalAnimationTime / totalHits; // Time per hit
 
-            yield return new WaitForSeconds(miningTime / hitsToMine);
+        animator.SetBool("isMining", true); // Set animation state
+
+        // Get animation clip duration
+        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+
+        if (stateInfo.length > 0)
+        {
+            animator.speed = (stateInfo.length / timePerHit) * totalHits; // Scale speed
+        }
+        else
+        {
+            Debug.LogError("Mining animation length is invalid!");
         }
 
+        for (int i = 0; i < totalHits; i++)
+        {
+            yield return new WaitForSeconds(timePerHit);
+            Debug.Log("Hit " + (i + 1));
+        }
+
+        yield return null; // Wait one frame
+
         isMining = false;
+        animator.SetBool("isMining", false); // Stop animation
+        animator.speed = 1f; // Reset animation speed
+
         oreQuantity++;
         MoveToMinecart();
         Debug.Log("MoveToMinecart() called from coroutine");
