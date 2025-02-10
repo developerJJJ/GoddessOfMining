@@ -64,13 +64,13 @@ public class Miner : MonoBehaviour
         if (other.gameObject.CompareTag("Ore"))
         {
             oreTarget = other.transform;
-            rb.linearVelocity = Vector2.zero; // Corrected to use rb.linearVelocity
+            rb.linearVelocity = Vector2.zero;
             StartMining();
             Debug.Log("Miner entered trigger of ore: " + other.gameObject.name);
         }
         else if (other.gameObject.CompareTag("Minecart") && oreQuantity > 0)
         {
-            rb.linearVelocity = Vector2.zero; // Corrected to use rb.linearVelocity
+            rb.linearVelocity = Vector2.zero;
             Debug.Log("Miner collided with minecart. Depositing ore.");
             DepositOre();
         }
@@ -90,28 +90,29 @@ public class Miner : MonoBehaviour
         Debug.Log("Coroutine started");
 
         int totalHits = hitsToMine;
-
-        animator.SetTrigger("StartMining");
-        yield return new WaitForSeconds(0.1f);
-
-        AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-        while (!stateInfo.IsName("miner_mining"))
-        {
-            yield return null;
-            stateInfo = animator.GetCurrentAnimatorStateInfo(0);
-        }
-        float animationLength = stateInfo.length;
+        animator.SetBool("isMiningLoopDone", false); // Ensure loop flag is FALSE at start
 
         for (int i = 0; i < totalHits; i++)
         {
-            if (i > 0)
+            Debug.Log("Hit " + (i + 1) + " - Triggering StartMining animation.");
+            animator.SetTrigger("StartMining"); // Trigger StartMining for each hit
+
+            yield return new WaitForSeconds(0.1f); // Give animation time to start
+
+            AnimatorStateInfo stateInfo = animator.GetCurrentAnimatorStateInfo(0);
+            while (!stateInfo.IsName("miner_mining"))
             {
-                animator.SetTrigger("StartMining");
+                yield return null;
+                stateInfo = animator.GetCurrentAnimatorStateInfo(0);
             }
-            Debug.Log("Hit " + (i + 1));
-            yield return new WaitForSeconds(animationLength);
+
+            float animationLength = animator.GetCurrentAnimatorStateInfo(0).length;
+            Debug.Log("Hit " + (i + 1) + " - Animation length: " + animationLength);
+            yield return new WaitForSeconds(animationLength - 0.05f); // **Slightly REDUCED wait time**
+            Debug.Log("Hit " + (i + 1) + " - Animation cycle complete.");
         }
 
+        animator.SetBool("isMiningLoopDone", true); // Signal loop is DONE, allow transition to Idle
         oreQuantity++;
         isMining = false;
         MoveToMinecart();
