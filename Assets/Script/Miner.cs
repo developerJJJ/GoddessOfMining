@@ -16,12 +16,14 @@ public class Miner : MonoBehaviour
     private Animator animator;
     private Vector2 minecartDirection;
     private bool isMovingToMinecart = false;
+    private SpriteRenderer spriteRenderer;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         oreTarget = FindClosestOre();
+        spriteRenderer = GetComponent<SpriteRenderer>();
     }
 
     void FixedUpdate()
@@ -29,17 +31,31 @@ public class Miner : MonoBehaviour
         if (isMovingToMinecart)
         {
             rb.linearVelocity = minecartDirection * moveSpeed;
-            animator.SetBool("isWalking", true); // Walking when moving to minecart
+            animator.SetBool("isWalking", true);
+            UpdateSpriteDirection(minecartDirection.x);
         }
         else if (oreTarget != null && !isMining)
         {
             Vector2 direction = (oreTarget.position - transform.position).normalized;
             rb.AddForce(direction * moveSpeed, ForceMode2D.Force);
-            animator.SetBool("isWalking", rb.linearVelocity.magnitude > 0.01f); // Walking when moving to ore
+            animator.SetBool("isWalking", rb.linearVelocity.magnitude > 0.01f);
+            UpdateSpriteDirection(direction.x);
         }
         else
         {
-            animator.SetBool("isWalking", false); // Not walking when not moving or mining
+            animator.SetBool("isWalking", false);
+        }
+    }
+
+    void UpdateSpriteDirection(float horizontalDirection)
+    {
+        if (horizontalDirection > 0)
+        {
+            spriteRenderer.flipX = false;
+        }
+        else if (horizontalDirection < 0)
+        {
+            spriteRenderer.flipX = true;
         }
     }
 
@@ -48,13 +64,13 @@ public class Miner : MonoBehaviour
         if (other.gameObject.CompareTag("Ore"))
         {
             oreTarget = other.transform;
-            rb.linearVelocity = Vector2.zero; // Directly use rb.velocity for simplification
+            rb.linearVelocity = Vector2.zero; // Corrected to use rb.linearVelocity
             StartMining();
             Debug.Log("Miner entered trigger of ore: " + other.gameObject.name);
         }
         else if (other.gameObject.CompareTag("Minecart") && oreQuantity > 0)
         {
-            rb.linearVelocity = Vector2.zero; // Directly use rb.velocity for simplification
+            rb.linearVelocity = Vector2.zero; // Corrected to use rb.linearVelocity
             Debug.Log("Miner collided with minecart. Depositing ore.");
             DepositOre();
         }
@@ -64,7 +80,8 @@ public class Miner : MonoBehaviour
     {
         Debug.Log("<color=red>StartMining() function CALLED</color>");
         isMining = true;
-        animator.SetBool("isWalking", false); // Ensure walking animation stops immediately
+        animator.SetBool("isWalking", false);
+        UpdateSpriteDirection(0);
         StartCoroutine(MiningAnimationCoroutine());
     }
 
@@ -146,6 +163,6 @@ public class Miner : MonoBehaviour
                 }
             }
         }
-        return closestOre; // Removed extra else blocks for conciseness - null check is still done by the caller.
+        return closestOre;
     }
 }
