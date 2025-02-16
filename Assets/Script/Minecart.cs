@@ -28,7 +28,7 @@ public class Minecart : MonoBehaviour
 
     public void SellOre()
     {
-        GameManager.instance.IncreaseGold(oreCount * goldPerOre);
+        GameManager.Instance.IncreaseGold(oreCount * goldPerOre);
         oreCount = 0;
         Debug.Log("<color=yellow>SellOre() called. Ore sold. oreCount reset to: " + oreCount + "</color>"); // Debug log in SellOre
         UpdateOreCountDisplay();

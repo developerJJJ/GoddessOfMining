@@ -18,19 +18,31 @@ public class Miner : MonoBehaviour
     private bool isMovingToMinecart = false;
     private SpriteRenderer spriteRenderer;
 
+    private float currentMoveSpeed; // To store current moving speed, affected by upgrades
+    private float currentMiningTime; // To store current mining time, affected by upgrades
+
+    private float baseMoveSpeed; // To store the original base move speed
+    private float baseMiningTime; // To store the original base mining time
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
         oreTarget = FindClosestOre();
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        baseMoveSpeed = moveSpeed; // Store the original base move speed
+        baseMiningTime = miningTime; // Store the original base mining time
+
+        currentMoveSpeed = baseMoveSpeed; // Initialize current move speed with base move speed
+        currentMiningTime = baseMiningTime; // Initialize current mining time with base mining time
     }
 
     void FixedUpdate()
     {
         if (isMovingToMinecart)
         {
-            rb.linearVelocity = minecartDirection * moveSpeed;
+            rb.linearVelocity = minecartDirection * currentMoveSpeed;
             animator.SetBool("isWalking", true);
             UpdateSpriteDirection(minecartDirection.x);
         }
@@ -89,10 +101,9 @@ public class Miner : MonoBehaviour
     {
         Debug.Log("Coroutine started");
 
-        int totalHits = hitsToMine;
         animator.SetBool("isMiningLoopDone", false); // Ensure loop flag is FALSE at start
 
-        for (int i = 0; i < totalHits; i++)
+        for (int i = 0; i < hitsToMine; i++)
         {
             Debug.Log("Hit " + (i + 1) + " - Triggering StartMining animation.");
             animator.SetTrigger("StartMining"); // Trigger StartMining for each hit
@@ -108,7 +119,9 @@ public class Miner : MonoBehaviour
 
             float animationLength = animator.GetCurrentAnimatorStateInfo(0).length;
             Debug.Log("Hit " + (i + 1) + " - Animation length: " + animationLength);
-            yield return new WaitForSeconds(animationLength - 0.05f); // **Slightly REDUCED wait time**
+            // Delay between hits is now controlled by currentMiningTime
+            yield return new WaitForSeconds((currentMiningTime / hitsToMine) - animationLength); // Wait for remaining mining time after animation
+
             Debug.Log("Hit " + (i + 1) + " - Animation cycle complete.");
         }
 
@@ -165,5 +178,20 @@ public class Miner : MonoBehaviour
             }
         }
         return closestOre;
+    }
+
+    // --- Upgrade Effect Functions (Called from GameManager) ---
+
+    public void IncreaseMiningSpeed(float percentageIncrease)
+    {
+        currentMiningTime *= (1f - percentageIncrease); // Reduce current mining time by percentage
+        animator.SetFloat("MiningSpeed", baseMiningTime / currentMiningTime); // Update animator parameter to increase speed
+        Debug.Log($"Miner Mining Speed Increased! Mining Time reduced to: {currentMiningTime:F2} seconds");
+    }
+
+    public void IncreaseMovingSpeed(float percentageIncrease)
+    {
+        currentMoveSpeed = baseMoveSpeed * (1f + percentageIncrease * GameManager.Instance.GetMovingSpeedLevel()); // Increase move speed based on level
+        Debug.Log($"Miner Moving Speed Increased to: {currentMoveSpeed:F2} units/second");
     }
 }
